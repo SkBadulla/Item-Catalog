@@ -1,0 +1,41 @@
+{% include 'nav.html' %}
+<div class="main">
+{% block content %}
+    
+{% with messages = get_flashed_messages() %}
+			  {% if messages %}
+			    <script>
+			      var messages = {{ messages | safe }};
+			      for (var i=0; i<messages.length; i++) {
+			        alert(messages[i]);
+			      }
+			    </script>
+			  {% endif %}
+		{% endwith %}
+{% if 'username' in session %}
+<button type="button" class="btn btn-warning" style="margin: 5px 0px 5px 25px;"><a href="{{url_for('addBookDetails',tbname=tbs.name)}}" style="text-decoration: none;"><strong>Add New Edition</strong></a></button>
+
+{% endif %}
+<div class="row" style="margin: 10px;">
+{% for tbe in tbes %}
+
+	<div class="col-sm-4 text-center">
+		<div class="panel panel-primary">
+			<div class="panel-heading">
+				<h4>{{ tbe.name }}</h4>
+			</div>
+			<div class="panel-body">
+				<h5>{{ tbe.price }}</h5>
+		{% if 'username' in session %}
+			<button type="button" class="btn btn-info"><a href="{{ url_for('editBook',tbid=tbs.id,tbename=tbe.name) }}"style="text-decoration: none;color:white;">Edit</a></button>
+			<button type="button" class="btn btn-danger"><a href="{{ url_for('deleteBook',tbid=tbs.id,tbename=tbe.name)}}"style="text-decoration: none;color:white;">Delete</a></button>
+		{% endif %}
+			</div>
+		</div>
+	</div>
+
+		
+{% endfor %}
+</div>
+{% endblock content %}
+</div>
