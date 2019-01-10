@@ -27,8 +27,9 @@ session.query(User).delete()
 
 # Create sample users
 FirstUser = User(name="Shaik Badulla",
-             email="badullashaik507@gmail.com",
-             picture='https://www.hoax-slayer.net/wp-content/uploads/2018/05/waterfall-head-island-150518-1.jpg')
+                 email="badullashaik507@gmail.com",
+                 picture='http://www.enchanting-costarica.com/wp-content/'
+                 'uploads/2018/02/jcarvaja17-min.jpg')
 session.add(FirstUser)
 session.commit()
 print "Done to add FU"
@@ -51,39 +52,39 @@ session.commit()
 # Populate a textbooks with editions for testing
 # Using different users for text book edition also
 TBEdition1 = TBEdition(name="Communication Systems",
-	author="Simon Hakin",
-	edition="4th Edition,2011",
-	publisher="Wiley India Edition",
-	price="550",
-	tbtype="TextBook",
-	date=datetime.datetime.now(),
-	textbookid=1,
-	user_id=1)
+                       author="Simon Hakin",
+                       edition="4th Edition,2011",
+                       publisher="Wiley India Edition",
+                       price="550",
+                       tbtype="TextBook",
+                       date=datetime.datetime.now(),
+                       textbookid=1,
+                       user_id=1)
 session.add(TBEdition1)
 session.commit()
 
 TBEdition2 = TBEdition(name="Digital Design Principles and Practices",
-	author="John F.Wakerly",
-	edition="4 th Edition,2009",
-	publisher="Pearson Education",
-	price="540",
-	tbtype="TextBook",
-	date=datetime.datetime.now(),
-	textbookid=2,
-	user_id=1)
+                       author="John F.Wakerly",
+                       edition="4 th Edition,2009",
+                       publisher="Pearson Education",
+                       price="540",
+                       tbtype="TextBook",
+                       date=datetime.datetime.now(),
+                       textbookid=2,
+                       user_id=1)
 session.add(TBEdition2)
 session.commit()
 
 TBEdition3 = TBEdition(name="5.Computer Organisation",
-	author="CarlHamacher",
-	edition="5 th Edition",
-	publisher="McGraw Hill,2002",
-	price="650",
-	tbtype="Reference",
-	date=datetime.datetime.now(),
-	textbookid=3,
-	user_id=1)
+                       author="CarlHamacher",
+                       edition="5 th Edition",
+                       publisher="McGraw Hill,2002",
+                       price="650",
+                       tbtype="Reference",
+                       date=datetime.datetime.now(),
+                       textbookid=3,
+                       user_id=1)
 session.add(TBEdition3)
 session.commit()
 
-print("Your database has been inserted with sample data!")
+print("Your database has been inserted!")

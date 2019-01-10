@@ -1,12 +1,11 @@
-from flask import Flask,render_template,url_for,request,redirect,flash,make_response,jsonify
-
+from flask import Flask, render_template, url_for
+from flask import request, redirect, flash, make_response, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from db_setup import Base, TextBook, TBEdition,User
-
+from db_setup import Base, TextBook, TBEdition, User
 from flask import session as login_session
-import random,string
-
+import random
+import string
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 import httplib2
@@ -14,36 +13,36 @@ import json
 import requests
 import datetime
 
-engine=create_engine('sqlite:///textbookeditions.db', connect_args={'check_same_thread': False}, echo=True)
+engine = create_engine('sqlite:///textbookeditions.db',
+                       connect_args={'check_same_thread': False}, echo=True)
 Base.metadata.create_all(engine)
-
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 app = Flask(__name__)
 
-
-
-CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read())['web']['client_id']
+CLIENT_ID = json.loads(open('client_secrets.json',
+                            'r').read())['web']['client_id']
 APPLICATION_NAME = "Books Store"
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 # Create anti-forgery state token
+tbs_cat = session.query(TextBook).all()
 
-tbs_cat = session.query(TextBook).all() 
-#login 
+
+# login
 @app.route('/login')
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
     login_session['state'] = state
     # return "The current session state is %s" % login_session['state']
-    
-    tbs_cat=session.query(TextBook).all()
-    tbes=session.query(TBEdition).all()
-    return render_template('login.html', STATE=state,tbs_cat=tbs_cat,tbes=tbes)
-    #return render_template('myhome.html', STATE=state,tbs_cat=tbs_cat,tbes=tbes)
+    tbs_cat = session.query(TextBook).all()
+    tbes = session.query(TBEdition).all()
+    return render_template('login.html',
+                           STATE=state, tbs_cat=tbs_cat, tbes=tbes)
+    # return render_template('myhome.html', STATE=state
+    # tbs_cat=tbs_cat,tbes=tbes)
 
 
 @app.route('/gconnect', methods=['POST'])
@@ -98,7 +97,7 @@ def gconnect():
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
+        response = make_response(json.dumps('Current user already connected.'),
                                  200)
         response.headers['Content-Type'] = 'application/json'
         return response
@@ -130,13 +129,14 @@ def gconnect():
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    output += ' " style = "width: 300px; height: 300px; border-radius: 150px;'
+    '-webkit-border-radius: 150px; -moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
     print "done!"
     return output
 
-# User Helper Functions
 
+# User Helper Functions
 def createUser(login_session):
     newUser = User(name=login_session['username'], email=login_session[
                    'email'], picture=login_session['picture'])
@@ -160,135 +160,192 @@ def getUserID(email):
 
 # DISCONNECT - Revoke a current user's token and reset their login_session
 
-#Home
+
+# Home
 @app.route('/')
 @app.route('/home')
 def home():
-    tbs_cat=session.query(TextBook).all()
-    return render_template('myhome.html',tbs_cat=tbs_cat)
+    tbs_cat = session.query(TextBook).all()
+    return render_template('myhome.html', tbs_cat=tbs_cat)
 
-#Book Category for admins
+
+# Book Category for admins
 @app.route('/BookStore')
 def BookStore():
     try:
         if login_session['username']:
-            name=login_session['username']
-            tbs_cat=session.query(TextBook).all()
-            tbs=session.query(TextBook).all()
-            tbes=session.query(TBEdition).all()
-            return render_template('myhome.html',tbs_cat=tbs_cat,tbs=tbs,tbes=tbes,uname=name)
+            name = login_session['username']
+            tbs_cat = session.query(TextBook).all()
+            tbs = session.query(TextBook).all()
+            tbes = session.query(TBEdition).all()
+            return render_template('myhome.html', tbs_cat=tbs_cat,
+                                   tbs=tbs, tbes=tbes, uname=name)
     except:
         return redirect(url_for('showLogin'))
 
-#Showing books based on book category
+
+# Showing books based on book category
 @app.route('/BookStore/<int:tbid>/AllBooks')
 def showEditions(tbid):
-    tbs_cat=session.query(TextBook).all()
-    tbs=session.query(TextBook).filter_by(id=tbid).one()
-    tbes=session.query(TBEdition).filter_by(textbookid=tbid).all()
+    tbs_cat = session.query(TextBook).all()
+    tbs = session.query(TextBook).filter_by(id=tbid).one()
+    tbes = session.query(TBEdition).filter_by(textbookid=tbid).all()
     try:
         if login_session['username']:
-            return render_template('showEditions.html',tbs_cat=tbs_cat,tbs=tbs,tbes=tbes,uname=login_session['username'])
+            return render_template('showEditions.html', tbs_cat=tbs_cat,
+                                   tbs=tbs, tbes=tbes,
+                                   uname=login_session['username'])
     except:
-        return render_template('showEditions.html',tbs_cat=tbs_cat,tbs=tbs,tbes=tbes)
+        return render_template('showEditions.html',
+                               tbs_cat=tbs_cat, tbs=tbs, tbes=tbes)
 
 
-#Add New Book
-@app.route('/BookStore/addBook',methods=['POST','GET'])
+# Add New Book
+@app.route('/BookStore/addBook', methods=['POST', 'GET'])
 def addBook():
-    if request.method=='POST':
-        newbook=TextBook(name=request.form['name'],
-            user_id=login_session['user_id'])
+    if request.method == 'POST':
+        newbook = TextBook(name=request.form['name'],
+                           user_id=login_session['user_id'])
         session.add(newbook)
         session.commit()
         return redirect(url_for('BookStore'))
     else:
-        return render_template('addBook.html',tbs_cat=tbs_cat)
+        return render_template('addBook.html', tbs_cat=tbs_cat)
 
-#Edit Book Category
-@app.route('/BookStore/<int:tbid>/edit',methods=['POST','GET']) 
+
+# Edit Book Category
+@app.route('/BookStore/<int:tbid>/edit', methods=['POST', 'GET'])
 def editCategory(tbid):
-    editedBook=session.query(TextBook).filter_by(id=tbid).one()
-    if request.method=="POST":
+    editedBook = session.query(TextBook).filter_by(id=tbid).one()
+    creator = getUserInfo(editedBook.user_id)
+    user = getUserInfo(login_session['user_id'])
+    # If logged in user != item owner redirect them
+    if creator.id != login_session['user_id']:
+        flash("You cannot edit this Book Category."
+              "This is belongs to %s" % creator.name)
+        return redirect(url_for('BookStore'))
+    if request.method == "POST":
         if request.form['name']:
-            editedBook.name=request.form['name']
+            editedBook.name = request.form['name']
         session.add(editedBook)
         session.commit()
         flash("Book Category Edited Successfully")
         return redirect(url_for('BookStore'))
     else:
-        #tbs_cat is global variable we can them in entire application
-        return render_template('editCategory.html',tb=editedBook,tbs_cat=tbs_cat)        
+        # tbs_cat is global variable we can them in entire application
+        return render_template('editCategory.html',
+                               tb=editedBook, tbs_cat=tbs_cat)
 
-#Delete Book Category
-@app.route('/BookStore/<int:tbid>/delete',methods=['POST','GET'])
+
+# Delete Book Category
+@app.route('/BookStore/<int:tbid>/delete', methods=['POST', 'GET'])
 def deleteCategory(tbid):
-    tb=session.query(TextBook).filter_by(id=tbid).one()
-    if request.method=="POST":
+    tb = session.query(TextBook).filter_by(id=tbid).one()
+    creator = getUserInfo(tb.user_id)
+    user = getUserInfo(login_session['user_id'])
+    # If logged in user != item owner redirect them
+    if creator.id != login_session['user_id']:
+        flash("You cannot Delete this Book Category."
+              "This is belongs to %s" % creator.name)
+        return redirect(url_for('BookStore'))
+    if request.method == "POST":
         session.delete(tb)
         session.commit()
         flash("Book Category Deleted Successfully")
         return redirect(url_for('BookStore'))
     else:
-        return render_template('deleteCategory.html',tb=tb,tbs_cat=tbs_cat)
+        return render_template('deleteCategory.html', tb=tb, tbs_cat=tbs_cat)
 
-#Add New Book Edition Details
-@app.route('/BookStore/addBook/addBookDetails/<string:tbname>/add',methods=['GET','POST'])
+
+# Add New Book Edition Details
+@app.route('/BookStore/addBook/addBookDetails/<string:tbname>/add',
+           methods=['GET', 'POST'])
 def addBookDetails(tbname):
-    tbs=session.query(TextBook).filter_by(name=tbname).one()
-    if request.method=='POST':
-        name=request.form['name']
-        author=request.form['author']
-        edition=request.form['edition']
-        publisher=request.form['publisher']
-        price=request.form['price']
-        tbdetails=TBEdition(name=name,author=author,edition=edition,publisher=publisher,price=price,date=datetime.datetime.now(),textbookid=tbs.id,user_id=login_session['user_id'])
-        session.add(tbdetails)
-        session.commit()
-        return redirect(url_for('showEditions',tbid=tbs.id))
-    else:
-        return render_template('addBookDetails.html',tbname=tbs.name,tbs_cat=tbs_cat)
-
-#Edit Book Edition
-@app.route('/BookStore/<int:tbid>/<string:tbename>/edit',methods=['GET','POST'])
-def editBook(tbid,tbename):
-    tbdetails=session.query(TBEdition).filter_by(name=tbename).one()
-    # See if the logged in user is the owner of item
-    creator = getUserInfo(tbdetails.user_id)
+    tbs = session.query(TextBook).filter_by(name=tbname).one()
+    # See if the logged in user is not the owner of book
+    creator = getUserInfo(tbs.user_id)
     user = getUserInfo(login_session['user_id'])
     # If logged in user != item owner redirect them
-    """if creator.id != login_session['user_id']:
-        flash("You cannot edit this item. "
-            "This item belongs to %s" % creator.name)
-        return redirect(url_for('showEditions'))"""
+    if creator.id != login_session['user_id']:
+        flash("You can't add new book edition"
+              "This is belongs to %s" % creator.name)
+        return redirect(url_for('showEditions', tbid=tbs.id))
+    if request.method == 'POST':
+        name = request.form['name']
+        author = request.form['author']
+        edition = request.form['edition']
+        publisher = request.form['publisher']
+        price = request.form['price']
+        tbdetails = TBEdition(name=name, author=author,
+                              edition=edition, publisher=publisher,
+                              price=price,
+                              date=datetime.datetime.now(),
+                              textbookid=tbs.id,
+                              user_id=login_session['user_id'])
+        session.add(tbdetails)
+        session.commit()
+        return redirect(url_for('showEditions', tbid=tbs.id))
+    else:
+        return render_template('addBookDetails.html',
+                               tbname=tbs.name, tbs_cat=tbs_cat)
+
+
+# Edit Book Edition
+@app.route('/BookStore/<int:tbid>/<string:tbename>/edit',
+           methods=['GET', 'POST'])
+def editBook(tbid, tbename):
+    tb = session.query(TextBook).filter_by(id=tbid).one()
+    tbdetails = session.query(TBEdition).filter_by(name=tbename).one()
+    # See if the logged in user is not the owner of book
+    creator = getUserInfo(tb.user_id)
+    user = getUserInfo(login_session['user_id'])
+    # If logged in user != item owner redirect them
+    if creator.id != login_session['user_id']:
+        flash("You can't edit this book edition"
+              "This is belongs to %s" % creator.name)
+        return redirect(url_for('showEditions', tbid=tb.id))
     # POST methods
-    if request.method=='POST':
-        tbdetails.name=request.form['name']
-        tbdetails.author=request.form['author']
-        tbdetails.edition=request.form['edition']
-        tbdetails.publisher=request.form['publisher']
-        tbdetails.price=request.form['price']
+    if request.method == 'POST':
+        tbdetails.name = request.form['name']
+        tbdetails.author = request.form['author']
+        tbdetails.edition = request.form['edition']
+        tbdetails.publisher = request.form['publisher']
+        tbdetails.price = request.form['price']
         tbdetails.date = datetime.datetime.now()
         session.add(tbdetails)
         session.commit()
         flash("Book Edited Successfully")
-        return redirect(url_for('showEditions',tbid=tbid))
+        return redirect(url_for('showEditions', tbid=tbid))
     else:
-        return render_template('editTB.html',tbid=tbid,tbdetails=tbdetails,tbs_cat=tbs_cat)
+        return render_template('editTB.html',
+                               tbid=tbid, tbdetails=tbdetails, tbs_cat=tbs_cat)
 
-#Delte Book Editon
-@app.route('/BookStore/<int:tbid>/<string:tbename>/delete',methods=['GET','POST'])
-def deleteBook(tbid,tbename):
-	tbdetails=session.query(TBEdition).filter_by(name=tbename).one()
-	if request.method=="POST":
-		session.delete(tbdetails)
-		session.commit()
-		flash("Deleted Book Successfully")
-		return redirect(url_for('showEditions',tbid=tbid))
-	else:
-		return render_template('deleteTB.html',tbid=tbid,tbdetails=tbdetails,tbs_cat=tbs_cat)
 
-#Logout
+# Delte Book Editon
+@app.route('/BookStore/<int:tbid>/<string:tbename>/delete',
+           methods=['GET', 'POST'])
+def deleteBook(tbid, tbename):
+    tb = session.query(TextBook).filter_by(id=tbid).one()
+    tbdetails = session.query(TBEdition).filter_by(name=tbename).one()
+    # See if the logged in user is not the owner of book
+    creator = getUserInfo(tb.user_id)
+    user = getUserInfo(login_session['user_id'])
+    # If logged in user != item owner redirect them
+    if creator.id != login_session['user_id']:
+        flash("You can't delete this book edition"
+              "This is belongs to %s" % creator.name)
+        return redirect(url_for('showEditions', tbid=tb.id))
+    if request.method == "POST":
+        session.delete(tbdetails)
+        session.commit()
+        flash("Deleted Book Successfully")
+        return redirect(url_for('showEditions', tbid=tbid))
+    else:
+        return render_template('deleteTB.html',
+                               tbid=tbid, tbdetails=tbdetails, tbs_cat=tbs_cat)
+
+
+# Logout
 @app.route('/logout')
 def logout():
     access_token = login_session['access_token']
@@ -301,10 +358,12 @@ def logout():
             json.dumps('Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
+    access_token = login_session['access_token']
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
     h = httplib2.Http()
     result = \
-        h.request(uri=url, method='POST', body=None, headers={'content-type': 'application/x-www-form-urlencoded'})[0]
+        h.request(uri=url, method='POST', body=None,
+                  headers={'content-type': 'application/x-www-form-urlencoded'})[0]
 
     print result['status']
     if result['status'] == '200':
@@ -324,7 +383,8 @@ def logout():
         response.headers['Content-Type'] = 'application/json'
         return response
 
-#Json
+
+# Json
 @app.route('/BookStore/JSON')
 def allBooksJSON():
     bookcategories = session.query(TextBook).all()
@@ -336,21 +396,25 @@ def allBooksJSON():
             category_dict[c]["book"] = books
     return jsonify(TextBook=category_dict)
 
+
 @app.route('/bookStore/bookCategories/JSON')
 def categoriesJSON():
     books = session.query(TextBook).all()
     return jsonify(bookCategories=[c.serialize for c in books])
+
 
 @app.route('/bookStore/editions/JSON')
 def itemsJSON():
     items = session.query(TBEdition).all()
     return jsonify(editions=[i.serialize for i in items])
 
+
 @app.route('/bookStore/<path:book_name>/editions/JSON')
 def categoryItemsJSON(book_name):
     bookCategory = session.query(TextBook).filter_by(name=book_name).one()
     editions = session.query(TBEdition).filter_by(textbook=bookCategory).all()
-    return jsonify(bookEdtion=[i.serialize for i in editions]) 
+    return jsonify(bookEdtion=[i.serialize for i in editions])
+
 
 @app.route('/bookStore/<path:book_name>/<path:edition_name>/JSON')
 def ItemJSON(book_name, edition_name):
@@ -361,6 +425,6 @@ def ItemJSON(book_name, edition_name):
 
 if __name__ == '__main__':
     global tbs_cat
-    app.secret_key="super_secret_key"
+    app.secret_key = "super_secret_key"
     app.debug = True
-    app.run(host = '0.0.0.0', port = 8000)
+    app.run(host='0.0.0.0', port=8000)

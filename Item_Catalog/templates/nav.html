@@ -61,10 +61,10 @@
           </script>
         {% endif %}
 {% endwith %}
-<nav class="navbar navbar-inverse">
+<nav class="navbar navbar-inverse  navbar-fixed-top">
   <div class="container-fluid">
     <div class="navbar-header">
-      <a class="navbar-brand" href="#">Book Store</a>
+      <a class="navbar-brand" href="{{ url_for('home') }}">Book Store</a>
     </div>
     <ul class="nav navbar-nav navbar-right">
       {% if 'username' in session %}
@@ -96,7 +96,7 @@
 </div>
 <div class="container">
 
-      <div class="main">
+      <div class="main" style="margin-top: 100px;">
         
             {% block content %}
               

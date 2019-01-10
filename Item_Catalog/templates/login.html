@@ -30,7 +30,7 @@
 </div>
 </div></center>
 
-{% with messages = get_flashed_messages() %}
+<!-- {% with messages = get_flashed_messages() %}
         {% if messages %}
           <script>
             var messages = {{ messages | safe }};
@@ -39,7 +39,7 @@
             }
           </script>
         {% endif %}
-    {% endwith %}
+    {% endwith %} -->
 <script>
 function signInCallback(authResult) {
   if (authResult['code']) {

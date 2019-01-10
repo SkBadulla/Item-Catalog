@@ -3,7 +3,7 @@
 {% block content %}
     
 
-	<div class="container">
+	<div class="">
 		<div style="width: 500px;">
 			
 		
@@ -12,7 +12,7 @@
 				<div class="panel-body">
 					<form class="form-inline" action="{{ url_for('addBook')}}" method="POST">
 						  <label for="email" class="mr-sm-2">Enter Book Name:</label>
-						  <input type="text" class="form-control mb-2 mr-sm-2" name="name" placeholder="Enter Book Name">
+						  <input type="text" class="form-control mb-2 mr-sm-2" name="name" placeholder="Enter Book Name" required>
 						  <input type="submit" class="btn btn-primary mb-2" value="Add Book">
 					</form>
 				</div>
